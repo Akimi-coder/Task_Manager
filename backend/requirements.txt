@@ -1,0 +1,6 @@
+fastapi~=0.115.0
+uvicorn[standard]
+PyMySQL~=1.1.1
+SQLAlchemy~=2.0.35
+cryptography
+pydantic~=2.9.2
