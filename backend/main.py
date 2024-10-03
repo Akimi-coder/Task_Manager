@@ -5,13 +5,29 @@ from pydantic import BaseModel
 from connector import DatabaseConnector
 from fastapi import FastAPI, HTTPException
 
+
 app = FastAPI()
 database = DatabaseConnector()
 
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Status(str, Enum):
-    pending = 'pending'
-    in_progress = 'in_progress'
-    completed = 'completed'
+    pending = 'Pending'
+    in_progress = 'In progress'
+    completed = 'Completed'
 
 class TaskBase(BaseModel):
     title: str

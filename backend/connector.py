@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Enum, TIMESTAMP, func
+from sqlalchemy import create_engine, Column, Integer, String, Text, Enum, TIMESTAMP, func, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import func
 
 Base = declarative_base()
 
@@ -10,9 +11,10 @@ class Task(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False)
     description = Column(Text)
-    status = Column(Enum('pending', 'in_progress', 'completed'), default='pending')
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    status = Column(Enum('Pending', 'In progress', 'Completed'), default='Pending')
+    created_at = Column(DateTime(timezone=True), server_default=func.utcnow())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.utcnow())
+
 
 
 class DatabaseConnector:
@@ -20,6 +22,7 @@ class DatabaseConnector:
         engine = create_engine('mysql+pymysql://root:root@localhost:3306/db')
         SessionMaker = sessionmaker(bind=engine)
         self.session = SessionMaker()
+        Base.metadata.create_all(engine)
         try:
             with engine.connect() as connection:
                 print("Connection successful!")
