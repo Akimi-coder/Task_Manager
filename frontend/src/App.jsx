@@ -5,6 +5,7 @@ import { Button, Flex ,Space,Col, Row,Table,Typography, Layout,Input,Popconfirm,
 import './App.css'
 import axios from 'axios';
 const { Text, Link } = Typography;
+const { Option } = Select;
 const { Header, Footer, Content } = Layout;
 
 const EditableCell = ({
@@ -53,7 +54,8 @@ const EditableCell = ({
 
 function App() {
   const [form] = Form.useForm();
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState([]);
+  const [pressAdd, setPressAdd] = useState(false);
   const [count, setCount] = useState(1);
   const [editingKey, setEditingKey] = useState('');
   const isEditing = (record) => record.key === editingKey;
@@ -71,21 +73,22 @@ function App() {
   };
 
   const handleAdd = () => {
-    const now = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kiev' });
-    const newData = {
-      key: count,
-      id: count,
-      created_at: now,
-      updated_at: now,
-    };
-    form.setFieldsValue({
-      title: '',
-      description: '',
-    });
-    setTasks([...tasks, newData]);
-    setAddingKey(count);
-    setCount(count + 1);
-    console.log(count)
+    if(!pressAdd){
+      const now = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kiev' });
+      const newData = {
+        key: count,
+        created_at: now,
+        updated_at: now,
+      };
+      form.setFieldsValue({
+        title: '',
+        description: '',
+      });
+      setTasks([...tasks, newData]);
+      setAddingKey(count);
+      setCount(count + 1);
+      setPressAdd(true);
+    }
   };
 
   const saveAdding = async (key) => {
@@ -95,11 +98,6 @@ function App() {
       const index = newData.findIndex((item) => key === item.key);
       if (index > -1) {
         const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-        });
-        setTasks(newData);
         const taskToAdd = {
           title: row.title,
           description: row.description,
@@ -108,8 +106,14 @@ function App() {
         const response = await axios.post(`http://127.0.0.1:8000/tasks/`, taskToAdd);
         item.updated_at = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kiev' })
         item.created_at = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kiev' })
-        console.log(response)
+        item.id = response.data.id
+        setTasks(newData);
+        newData.splice(index, 1, {
+          ...item,
+          ...row,
+        });
         setAddingKey('');
+        setPressAdd(false);
       } 
 
     } catch (errInfo) {
@@ -126,6 +130,7 @@ function App() {
     const newData = tasks.filter((item) => item.key !== key);
     setTasks(newData);
     setCount(count - 1);
+    setPressAdd(false);
   };
 
   const save = async (key) => {
@@ -177,7 +182,6 @@ function App() {
   
       const response = await axios.delete(`http://127.0.0.1:8000/tasks/${taskToDelete.id}`);
       console.log(response);
-  
       const newData = tasks.filter((item) => item.key !== key);
       setTasks(newData);
       setCount(count - 1);
@@ -203,25 +207,25 @@ function App() {
 
   const columns = [
     {
-      title: 'id',
+      title: 'Id',
       dataIndex: 'key',
       key: 'key',
       render: (text) => <a>{text}</a>,
     },
     {
-      title: 'title',
+      title: 'Title',
       dataIndex: 'title',
       key: 'title',
       editable: true,
     },
     {
-      title: 'description',
+      title: 'Description',
       dataIndex: 'description',
       key: 'description',
       editable: true,
     },
     {
-      title: 'status',
+      title: 'Status',
       dataIndex: 'status',
       key: 'status',
       filters: [
@@ -267,19 +271,19 @@ function App() {
       },
     },
     {
-      title: 'created_at',
+      title: 'Created At',
       dataIndex: 'created_at',
       key: 'created_at',
     },
     {
-      title: 'updated_at',
+      title: 'Updated At',
       dataIndex: 'updated_at',
       key: 'updated_at',
     },
     {
       title: 'Action',
       key: 'action',
-      render: (_, record) => {
+      render: (text, record) => {
         const editable = isEditing(record);
         const adding = isAdding(record.key);
         return editable ? (
@@ -337,7 +341,6 @@ function App() {
     axios.get('http://127.0.0.1:8000/tasks').then(r => {
       let countTask = 1;
       const taskResponse = r.data.map(t => {
-        console.log(t.created_at)
         const task = {
           key: countTask,
           id: t.id,
@@ -374,9 +377,7 @@ function App() {
       }),
     };
   });
-  const onChange = (pagination, filters, sorter, extra) => {
-    console.log('params', pagination, filters, sorter, extra);
-  };
+
   return (
     <div>
       <Layout>
@@ -412,8 +413,7 @@ function App() {
           }}
           showSorterTooltip={{
             target: 'sorter-icon',
-          }}
-          onChange={onChange}/>
+          }}/>
           </Form>
         </Content>
       </Layout>

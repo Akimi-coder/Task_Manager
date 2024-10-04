@@ -1,15 +1,10 @@
-from enum import Enum
-
-from pydantic import BaseModel
-
 from connector import DatabaseConnector
 from fastapi import FastAPI, HTTPException
-
+from fastapi.middleware.cors import CORSMiddleware
+from task import TaskBase
 
 app = FastAPI()
 database = DatabaseConnector()
-
-from fastapi.middleware.cors import CORSMiddleware
 
 origins = [
     "http://localhost:5173",
@@ -24,22 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Status(str, Enum):
-    pending = 'Pending'
-    in_progress = 'In progress'
-    completed = 'Completed'
-
-class TaskBase(BaseModel):
-    title: str
-    description: str
-    status: Status = Status.pending
-
 @app.get("/tasks")
 def read_root():
     tasks = database.get_tasks()
     return tasks
 
-# Get a task by id
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
     task = database.get_task_by_id(task_id)
@@ -54,10 +38,18 @@ def delete_task(task_id: int):
         raise HTTPException(status_code=404, detail="Task not found")
     return {"detail": "Task deleted"}
 
-@app.post("/tasks/")
+@app.post("/tasks")
 def create_user(task:TaskBase):
     new_task = database.add_new_task(task.title,task.description,task.status)
-    return new_task
+    task_dict = {
+        "id": new_task.id,
+        "title": new_task.title,
+        "description": new_task.description,
+        "status": new_task.status,
+        "created_at": new_task.created_at,
+        "updated_at": new_task.updated_at,
+    }
+    return task_dict
 
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int,task:TaskBase):

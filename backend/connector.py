@@ -13,13 +13,11 @@ class Task(Base):
     description = Column(Text)
     status = Column(Enum('Pending', 'In progress', 'Completed'), default='Pending')
     created_at = Column(DateTime(timezone=True), server_default=func.utcnow())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.utcnow())
-
-
+    updated_at = Column(DateTime(timezone=True), server_default=func.utcnow(), onupdate=func.utcnow())
 
 class DatabaseConnector:
     def __init__(self):
-        engine = create_engine('mysql+pymysql://root:root@localhost:3306/db')
+        engine = create_engine('mysql+pymysql://root:root@mysql/db')
         SessionMaker = sessionmaker(bind=engine)
         self.session = SessionMaker()
         Base.metadata.create_all(engine)
@@ -49,6 +47,7 @@ class DatabaseConnector:
         new_task = Task(title=title, description=description, status=status)
         self.session.add(new_task)
         self.session.commit()
+        print(new_task)
         return new_task
 
     def update_task(self, task_id, title=None, description=None, status=None):

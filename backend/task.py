@@ -1,8 +1,12 @@
-class Task:
-    def __init__(self, id, title, description, status, created_at, updated_at):
-        self.id = id
-        self.title = title
-        self.description = description
-        self.status = status
-        self.created_at = created_at
-        self.updated_at = updated_at
+from enum import Enum
+from pydantic import BaseModel
+
+class Status(str, Enum):
+    pending = 'Pending'
+    in_progress = 'In progress'
+    completed = 'Completed'
+
+class TaskBase(BaseModel):
+    title: str
+    description: str
+    status: Status = Status.pending
