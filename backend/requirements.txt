@@ -1,6 +1,10 @@
-fastapi
+fastapi~=0.115.0
 uvicorn[standard]
 PyMySQL
-sqlalchemy
+sqlalchemy~=2.0.35
 cryptography
-pydantic
+pydantic~=2.9.2
+passlib~=1.7.4
+python-jose
+bcrypt
+python-multipart

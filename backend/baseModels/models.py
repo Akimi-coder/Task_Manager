@@ -10,3 +10,8 @@ class TaskBase(BaseModel):
     title: str
     description: str
     status: Status = Status.pending
+
+class UserBase(BaseModel):
+    username: str
+    password: str
+
